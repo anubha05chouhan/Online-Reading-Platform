@@ -1,0 +1,82 @@
+package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import model.Genre;
+import util.DBUtil;
+
+public class GenreDAOImpl implements GenreDAO {
+
+	@Override
+	public Genre insert(Genre genre) throws SQLException {
+		int genre_id=-1;
+		String insertQuery = "INSERT INTO genres(genre_name) VALUES(?) RETURNING genre_id";
+		try (Connection conn = DBUtil.getDataSource().getConnection();
+			 PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
+			insertStmt.setString(1, genre.getGenre_name());
+			ResultSet rsInsert = insertStmt.executeQuery();
+			if (rsInsert.next()) {
+				genre_id = rsInsert.getInt("genre_id");
+				genre.setGenre_id(genre_id);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return genre;
+	}
+
+	@Override
+	public Genre fetch(Genre genre) throws SQLException {
+		int genre_id=1;
+		String checkQuery = "SELECT genre_id FROM genres WHERE genre_name = ?";
+		try (Connection conn = DBUtil.getDataSource().getConnection();
+			 PreparedStatement checkStmt = conn.prepareStatement(checkQuery);) {
+			checkStmt.setString(1, genre.getGenre_name());
+			ResultSet rs = checkStmt.executeQuery();
+
+			if (rs.next()) {
+				genre_id = rs.getInt("genre_id");
+				genre.setGenre_id(genre_id);
+			}
+		}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		return genre;
+	}
+
+	@Override
+	public List<Genre> fetchAll() throws SQLException {
+		int genre_id=1;
+		String genre_name="";
+		ArrayList<Genre> list = new ArrayList<>();
+		String checkQuery = "SELECT genre_id, genre_name FROM genres";
+		try (Connection conn = DBUtil.getDataSource().getConnection();
+			 PreparedStatement checkStmt = conn.prepareStatement(checkQuery);) 
+		{
+			ResultSet rs = checkStmt.executeQuery();
+			  while(rs.next()) 
+			  {
+				Genre genre = new Genre();
+				genre_id = rs.getInt("genre_id");
+				genre.setGenre_id(genre_id);
+				genre_name = rs.getString("genre_name");
+				genre.setGenre_name(genre_name);
+				list.add(genre);
+			  }
+		}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		return list;
+	}	
+
+}
